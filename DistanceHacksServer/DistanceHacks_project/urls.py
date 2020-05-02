@@ -16,7 +16,10 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from signin.views import *
+from aidistance.views import *
 urlpatterns = [
     path('', signinView),
-    path('manifest.json', manifestView)
+    path('manifest.json', manifestView),
+    path('addUser', addUserView),
+    path('addLocation', addLocationView),
 ]
