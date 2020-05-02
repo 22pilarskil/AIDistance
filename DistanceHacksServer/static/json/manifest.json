@@ -1,0 +1,10 @@
+{
+    "name": " Social Shopping",
+    "start_url": "localhost:8000",
+    "description": "A website that details the safety of nearby shopping centers",
+    "icons": [{
+      "src": "https://hips.hearstapps.com/hmg-prod.s3.amazonaws.com/images/young-woman-shopping-in-a-grocery-store-and-wearing-royalty-free-image-1586037586.jpg",
+      "sizes": "192x192",
+      "type": "image/png"
+    }]
+  }
