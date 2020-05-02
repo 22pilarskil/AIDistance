@@ -35,6 +35,20 @@ def detect_faces(img):
 	else:
 		return mtcnn.detect_faces(img)
 
+def gstreamer_pipeline(capture_width=1280,capture_height=720,display_width=1280,display_height=720,framerate=60,flip_method=0):
+    return (
+        "nvarguscamerasrc ! "
+        "video/x-raw(memory:NVMM), "
+        "width=(int)%d, height=(int)%d, "
+        "format=(string)NV12, framerate=(fraction)%d/1 ! "
+        "nvvidconv flip-method=%d ! "
+        "video/x-raw, width=(int)%d, height=(int)%d, format=(string)BGRx ! "
+        "videoconvert ! "
+        "video/x-raw, format=(string)BGR ! appsink "
+        "max-buffers=1 drop=True "
+        % (capture_width, capture_height, framerate, flip_method, display_width, display_height)
+    )
+
 rcnn = build_model(
 	model_path="frozen_inference_graph.pb",
 	output_tensor_names=["detection_boxes:0", "detection_scores:0", "detection_classes:0"],
@@ -49,6 +63,9 @@ facenet = build_model(
 
 
 cap = cv2.VideoCapture(0)
+if not cap.isOpened():
+	cap = cv2.VideoCapture(gstreamer_pipeline(display_width=640, display_height=360, flip_method=0), cv2.CAP_GSTREAMER)
+
 while True:
 	ret_val, img = cap.read()
 	expanded = np.expand_dims(img, axis=0) #faster_rcnn requires this
