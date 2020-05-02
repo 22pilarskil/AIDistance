@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Social Shopping</title>
+  <title>AI Distance</title>
   <script type="text/javascript">
   (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 var asn1 = exports;
@@ -100498,7 +100498,7 @@ window.blockstack = require('blockstack')
 
   if (blockstack.isUserSignedIn()) {
     var profile = blockstack.loadUserData().profile
-    window.location.href = "projectPage/"
+    window.location.href = "home"
   } else if (blockstack.isSignInPending()) {
     blockstack.handlePendingSignIn().then(function(userData) {
       window.location = window.location.origin
@@ -100540,7 +100540,7 @@ body{color:#fff;text-align:center;}
   <div class="site-wrapper">
     <div class="site-wrapper-inner">
       <div class="panel-landing" id="section-1">
-        <h1 class="landing-heading">Social Shopping</h1>
+        <h1 class="landing-heading">AI Distance</h1>
         <h2 class="landing-heading">Stay Safe while Shopping for essentials</h2>
         <p class="lead">
           <a href="#" class="btn btn-primary btn-lg" id="signin-button">

@@ -20,6 +20,8 @@ from aidistance.views import *
 urlpatterns = [
     path('', signinView),
     path('manifest.json', manifestView),
-    path('addUser', addUserView),
-    path('addLocation', addLocationView),
+    path('addLocation', addLocationHtmlView),
+    path('addLocationinfo', addLocationView),
+    path('home', mainPageView),
+    path('setNumberofPeople', setNumberofPeopleView),
 ]
