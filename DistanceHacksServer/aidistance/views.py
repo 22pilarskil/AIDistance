@@ -21,8 +21,9 @@ def addLocationHtmlView(request):
     return render(request, 'addLocation.html')
 
 def mainPageView(request):
-    locations = getLocations()
-    return render(request, 'index.html', {"locations": locations })
+    locations = getLocations().copy()
+    locations = modifyLocations(locations, threshold=20)
+    return render(request, 'index.html', {"locations": locations, "num_people":5, "square_footage":100})
 
 def setNumberofPeopleView(request):
     if request.method == 'GET':
@@ -30,6 +31,13 @@ def setNumberofPeopleView(request):
     else:
         details = request.POST.copy()
     setNumberofPeople(details)
+
+def setPreferencesView(request):
+    copy = request.POST.copy()
+    if copy['num_people'] == "": copy['num_people'] = 5
+    if copy['square_footage'] == "": copy['square_footage'] = 100
+    locations = modifyLocations(getLocations(), threshold=int(copy['num_people']) / int(copy['square_footage']))
+    return render(request, 'index.html', {"locations": locations, "num_people":copy['num_people'], "square_footage":copy['square_footage']})
     
 
 

@@ -24,4 +24,5 @@ urlpatterns = [
     path('addLocationinfo', addLocationView),
     path('home', mainPageView),
     path('setNumberofPeople', setNumberofPeopleView),
+    path('setPreferences', setPreferencesView)
 ]

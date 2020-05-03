@@ -15,6 +15,19 @@ db = firebase.database()
 def addUser(username):
     db.child("Users").child(username).child("username").set(username) 
 
+def modifyLocations(locations, threshold):
+    for location in locations:
+        print(locations[location])
+        if locations[location]["People"] in ["None", "0"] or \
+                int(locations[location]["SquareFeet"]) / int(locations[location]["People"]) < threshold:
+            locations[location]["safe"] = "Safe"
+        else:
+            print("oops")
+            locations[location]["safe"] = "Not Safe"
+            print(locations[location])
+    print(locations)
+    return locations 
+
 def addLocation(details):
     db.child("Locations").child(details["location"]).child("name").set(details["location"]) 
     db.child("Locations").child(details["location"]).child("Address").set(details["address"]) 
@@ -22,12 +35,8 @@ def addLocation(details):
     db.child("Locations").child(details["location"]).child("People").set(details["people"]) 
     db.child("Locations").child(details["location"]).child("safe").set(details["safe"]) 
 
-def setNumberofPeople(details, threshold=6):
+def setNumberofPeople(details):
     db.child("Locations").child(details["location"]).child("People").set(details["people"]) 
-    if int(db.child("Locations").child(details["location"]).get().val()['SquareFeet'])/int(details["people"]) < threshold:
-        db.child("Locations").child(details["location"]).child("safe").set("Not Safe") 
-    else:
-        db.child("Locations").child(details["location"]).child("safe").set("Safe") 
 
 
 def getLocations():
