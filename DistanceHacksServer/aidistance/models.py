@@ -34,7 +34,6 @@ def addLocation(details):
     db.child("Locations").child(details["location"]).child("Address").set(details["address"]) 
     db.child("Locations").child(details["location"]).child("SquareFeet").set(details["squarefeet"]) 
     db.child("Locations").child(details["location"]).child("People").set(details["people"]) 
-    db.child("Locations").child(details["location"]).child("safe").set(details["safe"]) 
 
 def setNumberofPeople(details):
     db.child("Locations").child(details["location"]).child("People").set(details["people"]) 

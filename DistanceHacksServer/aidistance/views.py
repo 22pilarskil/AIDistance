@@ -12,8 +12,7 @@ def addUserView(request):
 
 def addLocationView(request):
     details = request.POST.copy()
-    details['safe'] = "Yes"
-    details['people'] = "None"
+    details['people'] = "0"
     addLocation(details)
     return mainPageView(request)
 
