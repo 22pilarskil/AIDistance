@@ -19,7 +19,7 @@ def modifyLocations(locations, threshold):
     for location in locations:
         print(locations[location])
         if locations[location]["People"] in ["None", "0"] or \
-                int(locations[location]["SquareFeet"]) / int(locations[location]["People"]) < threshold:
+                (int(locations[location]["SquareFeet"]) * threshold) >= int(locations[location]["People"]):
             locations[location]["safe"] = "Safe"
         else:
             print("oops")
