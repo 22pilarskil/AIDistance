@@ -22,9 +22,9 @@ def addLocation(details):
     db.child("Locations").child(details["location"]).child("People").set(details["people"]) 
     db.child("Locations").child(details["location"]).child("safe").set(details["safe"]) 
 
-def setNumberofPeople(details):
+def setNumberofPeople(details, threshold=6):
     db.child("Locations").child(details["location"]).child("People").set(details["people"]) 
-    if int(db.child("Locations").child(details["location"]).get().val()['SquareFeet'])/int(details["people"]) < 6:
+    if int(db.child("Locations").child(details["location"]).get().val()['SquareFeet'])/int(details["people"]) < threshold:
         db.child("Locations").child(details["location"]).child("safe").set("Not Safe") 
     else:
         db.child("Locations").child(details["location"]).child("safe").set("Safe") 
