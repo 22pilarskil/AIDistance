@@ -5,6 +5,7 @@ import time
 import os
 import gc
 import argparse
+import requests
 
 import tensorflow as tf
 import numpy as np
@@ -90,8 +91,12 @@ if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
 	parser.add_argument("--orientation", help="orientation of camera relative to entrance/exit",  type=str, default="right")
 	parser.add_argument("--device", help="video or device to feed to inception_v2_coco", default=0)
+	parser.add_argument("--location", help="location to post data to", default="Krogers")
 
 	args = parser.parse_args()
+	if bool(args.device):
+		assert os.path.exists(args.device), "Please provide a valid path"
+
 	heading = {
 			"right": 
 			{
@@ -158,6 +163,7 @@ if __name__ == "__main__":
 		            print("{} person(s) entered the room: {} persons in total".format(difference, people))
 	            else:
 	            	people -= difference
+	            	r = requests.get("http://67.205.155.37:8000/setNumberofPeople", params={"people":people, "location":args.location})
 	            	print("{} person(s) left the room: {} persons in total".format(difference, people))
 
 	            current_val = len(bounds)
@@ -173,13 +179,13 @@ if __name__ == "__main__":
 	            	fontScale=4, thickness=1, color=color)
 	        missed_frames = 0
 
-	    except (ValueError, TypeError) as e: #nothing detected
-	        if isinstance(e, TypeError):
-	        	break
-	   	    missed_frames += 1
-	   	    if missed_frames >= 6: #take into account error from inception_v2_coco model
-		   	    current_val = 0
-		   	    last_centerpoint = 0
+	    except (ValueError, TypeError) as e:
+	    	missed_frames += 1 #nothing detected
+	    	if missed_frames >= 6: #take into account error from inception_v2_coco
+	    		current_val = 0
+	    		last_centerpoint = 0 
+	    	if isinstance(e, TypeError):
+	    		break
 
 	    if bounds:
 	        cv2.imshow("Image", img)
