@@ -41,6 +41,10 @@ def setPreferencesView(request):
         copy['square_footage'] = 100
     locations = modifyLocations(getLocations(), threshold=int(copy['num_people']) / int(copy['square_footage']))
     return render(request, 'index.html', {"locations": locations, "num_people":copy['num_people'], "square_footage":copy['square_footage']})
+
+
+def mehulView(request):
+    return render(request, "home.html")
     
 
 

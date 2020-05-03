@@ -18,11 +18,12 @@ from django.urls import path
 from signin.views import *
 from aidistance.views import *
 urlpatterns = [
-    path('', mainPageView),
+    path('', mehulView),
+    path('home', mehulView),
     path('manifest.json', manifestView),
     path('addLocation', addLocationHtmlView),
     path('addLocationinfo', addLocationView),
-    path('home', mainPageView),
+    path('shopsNearby', mainPageView),
     path('setNumberofPeople', setNumberofPeopleView),
     path('setPreferences', setPreferencesView)
 ]
