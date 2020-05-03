@@ -17,9 +17,10 @@ def addUser(username):
 
 def modifyLocations(locations, threshold):
     for location in locations:
+        print(threshold)
         print(locations[location])
         if locations[location]["People"] in ["None", "0"] or \
-                (int(locations[location]["SquareFeet"]) * threshold) >= int(locations[location]["People"]):
+               float(locations[location]["SquareFeet"]) * threshold >= int(locations[location]["People"]):
             locations[location]["safe"] = "Safe"
         else:
             print("oops")

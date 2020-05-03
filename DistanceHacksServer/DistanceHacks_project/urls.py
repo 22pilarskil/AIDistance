@@ -18,7 +18,7 @@ from django.urls import path
 from signin.views import *
 from aidistance.views import *
 urlpatterns = [
-    path('', signinView),
+    path('', mainPageView),
     path('manifest.json', manifestView),
     path('addLocation', addLocationHtmlView),
     path('addLocationinfo', addLocationView),

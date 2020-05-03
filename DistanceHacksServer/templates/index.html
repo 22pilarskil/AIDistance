@@ -2462,9 +2462,9 @@ header {
 <p style="font-size:24\0px">Set your preferences for what you consider safe!</p>
 <form id="form" class="contact-form"  action = "/setPreferences" method = "post"> {% csrf_token %}
 	<p>I want no more than
-	<input  name="num_people" type="number" class="input" style="width:80px" placeholder="{{num_people}}">
-	people per
-	<input  name = "square_footage" type="number" class="input" style="width:80px" placeholder="{{square_footage}}">
+	<input  name="num_people" type="number" class="input" style="width:80px" value="{{num_people}}">
+	person(s) per
+	<input  name = "square_footage" type="number" class="input" style="width:80px" value="{{square_footage}}">
 	square feet</p>
 	<button class="main-btn" type="submit">Submit</button>
 </div>
