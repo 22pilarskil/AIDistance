@@ -100497,10 +100497,10 @@ window.blockstack = require('blockstack')
   }
 
   if (blockstack.isUserSignedIn()) {
-    const userData = blockstack.loadUserData()
-    var person = new blockstack.Person(userData.profile)
-    console.log(person.name());
-   
+    var profile = blockstack.loadUserData().profile
+    console.log(profile);
+    window.location.href = "home"
+    
   } else if (blockstack.isSignInPending()) {
     blockstack.handlePendingSignIn().then(function(userData) {
       window.location = window.location.origin
