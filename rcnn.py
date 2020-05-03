@@ -1,18 +1,21 @@
-import numpy as np 
 import cv2
 import json
 import keras
 import time
 import os
+import gc
+import argparse
+
+import tensorflow as tf
+import numpy as np
+
 from mtcnn import MTCNN
 from sklearn.neighbors import NearestNeighbors
-import gc
 
 mtcnn = MTCNN()
 
 os.system("sh model_download.sh")
 
-import tensorflow as tf
 
 def build_model(model_path, output_tensor_names, input_tensor_name, placeholder=None):
     graph_def = None
@@ -56,12 +59,17 @@ def calc_overlap(bounds):
         (max(rect1[2], rect2[2]) - max(rect1[0], rect2[0])))
     overlap_percentage = overlap_area / min(rect1_area, rect2_area)
 
-    if overlap_percentage > .5 or max(rect1_area, rect2_area) / min(rect1_area, rect2_area) > 1.3:
+    if not len(bounds) == 1 and (overlap_percentage > .5 or max(rect1_area, rect2_area) / min(rect1_area, rect2_area) > 1.3):
         del(bounds[0 if rect1_area < rect2_area else 1])
-        if not len(bounds) > 1: return bounds
         calc_overlap(bounds)
     else: 
         return bounds
+
+def calc_centerpoints(bounds):
+	centerpoints = 0
+	for bound in bounds:
+		centerpoints += (bound[3] + bound[1]) / 2
+	return centerpoints / len(bounds)
 
 
 def gstreamer_pipeline(capture_width=1280,capture_height=720,display_width=1280,display_height=720,framerate=60,flip_method=0):
@@ -78,69 +86,109 @@ def gstreamer_pipeline(capture_width=1280,capture_height=720,display_width=1280,
         % (capture_width, capture_height, framerate, flip_method, display_width, display_height)
     )
 
-rcnn = build_model(
-    model_path="frozen_inference_graph.pb",
-    output_tensor_names=["detection_boxes:0", "detection_scores:0", "detection_classes:0"],
-    input_tensor_name="image_tensor:0",
-    placeholder=(1, None, None, 3)
-    )
+if __name__ == "__main__":
+	parser = argparse.ArgumentParser()
+	parser.add_argument("--orientation", help="orientation of camera relative to entrance/exit",  type=str, default="right")
+	parser.add_argument("--device", help="video or device to feed to inception_v2_coco", default=0)
 
-facenet = build_model(
-    model_path="20180402-114759.pb",
-    output_tensor_names=["embeddings:0"],
-    input_tensor_name="input:0"
-    )
+	args = parser.parse_args()
+	heading = {
+			"right": 
+			{
+				"centerpoint":lambda x: x > 0, 
+				"heading":lambda x: x[0] > x[1]
+			}, 
+			"left": 
+			{
+				"centerpoint":lambda x: x < 0, 
+				"heading":lambda x: x[0] < x[1]
+			}
+		}
 
+	rcnn = build_model(
+	    model_path="frozen_inference_graph.pb",
+	    output_tensor_names=["detection_boxes:0", "detection_scores:0", "detection_classes:0"],
+	    input_tensor_name="image_tensor:0",
+	    placeholder=(1, None, None, 3)
+	    )
 
-cap = cv2.VideoCapture("/Users/michaelpilarski/Desktop/yeet2.mov")
-if not cap.isOpened():
-    cap = cv2.VideoCapture(gstreamer_pipeline(display_width=640, display_height=360, flip_method=0), cv2.CAP_GSTREAMER)
-
-current_val = 0
-people = 0
-
-while True:
-    ret_val, img = cap.read()
-    expanded = np.expand_dims(img, axis=0) #faster_rcnn requires this
-
-    start = time.time()
-    boxes, scores, classes = list(rcnn["sess"].run(rcnn["output_tensors"], feed_dict={rcnn["input_tensor"]: expanded}))
-    #print(time.time()-start)
-    
-    combined = zip(np.squeeze(boxes), np.squeeze(scores), np.squeeze(classes))
-    #ensure box points provided, class is human, confidence greater than .5
-
-    bounds = []
-    try:
-        boxes, scores, classes = zip(*(list(filter(lambda x: sum(x[0]) > 0 and x[2] == 1 and x[1] > .5, combined)))) 
-        for box in boxes:
-            bounds.append([int(box[i] * img.shape[i%2]) for i in range(len(box))])
-
-        bounds = calc_overlap(bounds) if len(bounds) > 1 else bounds
-
-        if current_val < len(bounds):
-            additions = len(bounds)-current_val
-            people += additions
-            print("{} person(s) entered the room: {} persons in total".format(additions, people))
-        current_val = len(bounds)
-
-        for bound in bounds:
-            cv2.rectangle(img, (bound[1],bound[0]), (bound[3],bound[2]), color=(255,0,0), thickness=1)
-        time.sleep(.1)
-
-    except (ValueError, RuntimeError, TypeError) as e: #nothing detected
-        pass
-
-    if bounds:
-        cv2.imshow(str(len(bounds)), img)
-    else:
-        cv2.imshow("Image", img)
+	facenet = build_model(
+	    model_path="20180402-114759.pb",
+	    output_tensor_names=["embeddings:0"],
+	    input_tensor_name="input:0"
+	    )
 
 
-    if cv2.waitKey(1) & 0xFF == ord("q"):
-        break
+	cap = cv2.VideoCapture(args.device)
+	if not cap.isOpened():
+	    cap = cv2.VideoCapture(gstreamer_pipeline(display_width=640, display_height=360, flip_method=0), cv2.CAP_GSTREAMER)
 
-    #print(boxes)
+	frame_center = cap.get(cv2.CAP_PROP_FRAME_WIDTH) / 2
+	last_centerpoint = np.inf if args.orientation == "right" else -np.inf
 
-cap.release()
-cv2.destroyAllWindows()
+	current_val = 0
+	people = 0
+	missed_frames = 0
+	entering = None
+
+	while True:
+	    ret_val, img = cap.read()
+	    expanded = np.expand_dims(img, axis=0) #faster_rcnn requires this
+
+	    boxes, scores, classes = list(rcnn["sess"].run(rcnn["output_tensors"], feed_dict={rcnn["input_tensor"]: expanded}))
+	    
+	    combined = zip(np.squeeze(boxes), np.squeeze(scores), np.squeeze(classes))
+	    #ensure box points provided, class is human, confidence greater than .5
+
+	    bounds = []
+	    try:
+	        boxes, scores, classes = zip(*(list(filter(lambda x: sum(x[0]) > 0 and x[2] == 1 and x[1] > .5, combined)))) 
+	        for box in boxes:
+	            bounds.append([int(box[i] * img.shape[i%2]) for i in range(len(box))])
+
+	        bounds = calc_overlap(bounds) if len(bounds) > 1 else bounds
+
+	        if (current_val < len(bounds)) and last_centerpoint:
+	            current_centerpoint = calc_centerpoints(bounds)
+	            entering = heading[args.orientation]["centerpoint"](current_centerpoint - frame_center) and \
+	            	heading[args.orientation]["heading"]((last_centerpoint, current_centerpoint))
+	            difference = len(bounds)-current_val
+	            if entering:
+		            people += difference
+		            print("{} person(s) entered the room: {} persons in total".format(difference, people))
+	            else:
+	            	people -= difference
+	            	print("{} person(s) left the room: {} persons in total".format(difference, people))
+
+	            current_val = len(bounds)
+
+	        else:
+	        	last_centerpoint = calc_centerpoints(bounds)
+
+
+	        for bound in bounds:
+	            color=(0,255,0) if entering else (0,0,255)
+	            cv2.rectangle(img, (bound[1],bound[0]), (bound[3],bound[2]), color=color, thickness=4)
+	            cv2.putText(img, "Entering" if entering else "Leaving", org=(bound[1], bound[3]), fontFace=cv2.FONT_HERSHEY_SIMPLEX, \
+	            	fontScale=4, thickness=1, color=color)
+	        missed_frames = 0
+
+	    except (ValueError, TypeError) as e: #nothing detected
+	        if isinstance(e, TypeError):
+	        	break
+	   	    missed_frames += 1
+	   	    if missed_frames >= 6: #take into account error from inception_v2_coco model
+		   	    current_val = 0
+		   	    last_centerpoint = 0
+
+	    if bounds:
+	        cv2.imshow("Image", img)
+	    else:
+	        cv2.imshow("Image", img)
+
+
+	    if cv2.waitKey(1) & 0xFF == ord("q"):
+	        break
+
+	cap.release()
+	cv2.destroyAllWindows()
