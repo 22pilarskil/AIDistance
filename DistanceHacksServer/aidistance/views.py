@@ -21,7 +21,8 @@ def addLocationHtmlView(request):
     return render(request, 'addLocation.html')
 
 def mainPageView(request):
-    return render(request, 'index.html')
+    locations = getLocations()
+    return render(request, 'index.html', {"locations": locations })
 
 def setNumberofPeopleView(request):
     if request.method == 'GET':
@@ -29,3 +30,6 @@ def setNumberofPeopleView(request):
     else:
         details = request.POST.copy()
     setNumberofPeople(details)
+    
+
+

@@ -2568,26 +2568,26 @@ header {
 
 
 
+						<script>console.log(locations);</script>
 
+						
 
-
-
-						{% for ranking in rankings %}
+						{% for location_key, location_value in locations.items %}
 									<tr role="row" class="even">
-							<td class="text-center">{{ranking.position}}</td>
-							<td class="text-center">{{ranking.ranking}}</td>
+							<td class="text-center">{{location_key}}</td>
+							<td class="text-center">{{location_value.safe}}</td>
 							<td class="nowrap">
 								<div class="table-team-logo-wrapper" wfd-id="196">
 
-									<div class="table-team-logo-text" wfd-id="197"><a href="/teamBreakdown?id={{ranking.name}}">{{ranking.name}}</a> </div>
+									<div class="table-team-logo-text" wfd-id="197">{{location_value.Address}} </div>
 								</div> <!-- table-team-logo-wrapper -->
 							</td>
-						    							<td class="text-right">{{ranking.matchesWon}}</td>
-							<td class="text-right">{{ranking.matchesLost}}</td>
-															<td class="text-right">{{ranking.opr}}</td>
+						    							<td class="text-right">{{location_value.People}}</td>
+	
 
-															<td class="text-right">{{ranking.ccwm}}</td>
-															<td class="text-right">{{ranking.trsp}}</td>
+
+
+															<td class="text-right">{{location_value.SquareFeet}}</td>
 													    						</tr>
 				{%endfor%}
 </tbody>

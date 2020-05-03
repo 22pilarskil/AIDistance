@@ -18,13 +18,18 @@ def addUser(username):
 def addLocation(details):
     db.child("Locations").child(details["location"]).child("name").set(details["location"]) 
     db.child("Locations").child(details["location"]).child("Address").set(details["address"]) 
-    db.child("Locations").child(details["location"]).child("Square Feet").set(details["squarefeet"]) 
+    db.child("Locations").child(details["location"]).child("SquareFeet").set(details["squarefeet"]) 
     db.child("Locations").child(details["location"]).child("People").set(details["people"]) 
     db.child("Locations").child(details["location"]).child("safe").set(details["safe"]) 
 
 def setNumberofPeople(details):
     db.child("Locations").child(details["location"]).child("People").set(details["people"]) 
-    if int(db.child("Locations").child(details["location"]).get().val()['Square Feet'])/int(details["people"]) < 6:
+    if int(db.child("Locations").child(details["location"]).get().val()['SquareFeet'])/int(details["people"]) < 6:
         db.child("Locations").child(details["location"]).child("safe").set("Not Safe") 
     else:
         db.child("Locations").child(details["location"]).child("safe").set("Safe") 
+
+
+def getLocations():
+    locations = db.child("Locations").get().val()
+    return locations
